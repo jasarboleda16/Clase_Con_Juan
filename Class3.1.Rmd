@@ -32,7 +32,7 @@ end_time - start_time
 
 ```
 
-# Intro
+# Introducción
 
 Cargar datos
 
