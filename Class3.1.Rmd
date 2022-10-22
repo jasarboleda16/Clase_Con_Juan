@@ -1,0 +1,96 @@
+---
+title: "Conociendo los clientes"
+author: "APOSTAR S.A."
+date: "9/24/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE, warning = F, message = F}
+knitr::opts_chunk$set(echo = TRUE)
+library(readxl)
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+library(arrow)
+library(kableExtra)
+```
+
+Transformar el formato de la base a uno mas eficiente.
+
+```{r}
+#write_parquet(trans, 'trans_clientes_detallado.parquet')
+```
+
+Mide el tiempo de carga de la base de datos.
+
+```{r}
+start_time <- Sys.time()
+trans <- read_parquet('trans_clientes_detallado.parquet')
+end_time <- Sys.time()
+
+end_time - start_time
+
+```
+
+# Intro
+
+Cargar datos
+
+```{r data}
+#start_time <- Sys.time()
+#trans <- read_excel('TRANS CLIENTES DETALLADO 01-12 DICIEMBRE.xlsx')
+#end_time <- Sys.time()
+names(trans)[4] <- 'NOMBRE_PUNTO' #Transforma el nombre del campo
+names(trans)[6] <- 'IDENTIFICACION_USUARIO'
+names(trans)[11] <- 'IDENTIFICACION_CLIENTE'
+names(trans)[20] <- 'VALOR_VENTA_BRUTA'
+names(trans)[21] <- 'CANTIDAD_DE_TRANSACCIONES'
+trans$NOMBRE_PUNTO <- factor(trans$NOMBRE_PUNTO)
+trans$IDENTIFICACION_USUARIO <- factor(trans$IDENTIFICACION_USUARIO)
+trans$IDENTIFICACION_CLIENTE <- factor(trans$IDENTIFICACION_CLIENTE)
+trans$FECHA <- ymd(trans$FECHA)
+#trans$CANTIDAD_DE_TRANSACCIONES <- factor(trans$CANTIDAD_DE_TRANSACCIONES)
+str(trans)
+```
+
+# Cual es el punto de venta con mayor cantidad de ventas?
+
+```{r}
+trans %>%
+  unique() %>%
+  group_by(NOMBRE_PUNTO) %>%
+  mutate(total_transacciones = sum(CANTIDAD_DE_TRANSACCIONES),#crear una nueva variable con el mutate
+         total_valor = sum(VALOR_VENTA_BRUTA)) %>%
+  summarise(NOMBRE_PUNTO, total_transacciones, total_valor) %>%
+  unique() %>% #escribe una nueva tabla con los campos que se le seleccione
+  arrange(desc(total_transacciones)) %>% #Organiza la tabla en orden desc #%>% operador pipe
+  kbl() %>%
+  #kable_material(c("striped", "hover")) %>%
+  kable_material(c('striped', 'hover'), full_width = F)%>%
+  scroll_box(width = "75%", height = "200px")
+  
+```
+
+# Ventas en el tiempo
+
+```{r}
+trans %>%
+  group_by(FECHA, NOMBRE_PUNTO) %>%
+  mutate(total_transacciones = sum(CANTIDAD_DE_TRANSACCIONES),
+         total_valor = sum(VALOR_VENTA_BRUTA)) %>%
+  summarise(FECHA, NOMBRE_PUNTO, total_transacciones, total_valor) %>%
+  unique() %>%
+  ggplot(aes(x = FECHA, y = total_transacciones, group = NOMBRE_PUNTO)) +
+  geom_line()
+```
+
+```{r}
+trans %>%
+  group_by(FECHA, NOMBRE_PUNTO) %>%
+  mutate(total_transacciones = sum(CANTIDAD_DE_TRANSACCIONES),
+         total_valor = sum(VALOR_VENTA_BRUTA)) %>%
+  summarise(FECHA, NOMBRE_PUNTO, total_transacciones, total_valor) %>%
+  unique() %>%
+  ggplot(aes(x = FECHA, y = total_valor, group = NOMBRE_PUNTO)) +
+  geom_line() 
+```
