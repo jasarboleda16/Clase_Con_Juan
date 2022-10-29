@@ -116,6 +116,8 @@ trans %>%
   unique() %>% #escribe una nueva tabla con los campos que se le seleccione
   arrange(desc(total_transacciones)) %>% #Organiza la tabla en orden desc #%>% operador pipe
   kbl(caption = "Recreando mi tabla negrita" ) %>%
-  kable_material_dark()
+  kable_material_dark() %>%
+  scroll_box(height="400px")
 ```
 
+Avances clase R
