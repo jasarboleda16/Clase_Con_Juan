@@ -4,6 +4,7 @@ author: "APOSTAR S.A."
 date: "9/24/2022"
 output: html_document
 ---
+En el siguiente chunk se cargarán las librerias necesarias:
 
 ```{r setup, include=FALSE, warning = F, message = F}
 knitr::opts_chunk$set(echo = TRUE)
